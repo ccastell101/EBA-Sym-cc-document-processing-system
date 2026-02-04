@@ -1,1 +1,36 @@
-{"Settings": {"EnableRazorViews": false, "ExcludePortNetStandard": false, "EnableDbMod": true}, "projects": [], "DatabaseSettings": {"ConnecterId": "e55feb1b-ec51-47bf-9c49-66c2d5af7163", "Databases": [{"Source": {"DatabaseName": "DPS", "DatabaseVersion": 2019}, "Target": {"DatabaseName": "dps", "DatabaseVersion": 13}, "Tools": [{"Name": "DMS", "Properties": {"DmsArn": "arn:aws:dms:us-east-1:982534375473:migration-project:JUJJPJOP3NDERNDR2GG2WVOCZY"}}]}]}}
+{
+  "Settings": {
+    "EnableRazorViews": false,
+    "ExcludePortNetStandard": false,
+    "EnableDbMod": true
+  },
+  "DatabaseSettings": {
+    "ConnecterId": "f93b465a-18e2-4f77-b82b-77624e1ce8f8",
+    "Databases": [
+      {
+        "Source": {
+          "DatabaseName": "DPS",
+          "DatabaseVersion": 2019
+        },
+        "Target": {
+          "DatabaseName": "postgres",
+          "DatabaseVersion": 13
+        },
+        "Tools": [
+          {
+            "Name": "DMS",
+            "Properties": {
+              "DmsArn": "arn:aws:dms:us-east-1:672902293776:migration-project:FSJBLOQPCBD3VPLE73PFU2BIQY"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "projects": [
+    {
+      "projectFilePath": "src/DocumentProcessor.Web/DocumentProcessor.Web.csproj",
+      "dependencies": []
+    }
+  ]
+}

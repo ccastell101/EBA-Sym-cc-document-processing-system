@@ -1,34 +1,33 @@
 # 📄 Document Processing System
 
-A modern, enterprise-grade document processing platform built with .NET 8 and Blazor that leverages AWS Bedrock AI for intelligent document analysis, classification, and metadata extraction.
+A streamlined document processing application built with .NET 8 Blazor Server that leverages AWS Bedrock AI for intelligent document analysis and summarization.
 
-![Dashboard Overview](screenshots/Screenshot%202025-08-13%20113417.png)
+![Application Dashboard](screenshots/dashboard.png)
 
 ## 🌟 Key Features
 
-- **🤖 AI-Powered Processing**: Integrates with AWS Bedrock (Claude 3 models) for intelligent document analysis
-- **📊 Real-time Dashboard**: Monitor document processing statistics, queue status, and system health
-- **🔍 Smart Classification**: Automatically categorize documents using AI-driven classification
-- **📝 Metadata Extraction**: Extract and store structured metadata from unstructured documents  
-- **⚡ Background Processing**: Asynchronous document processing with queue management
-- **🔐 Security-First**: Built-in authentication with ASP.NET Core Identity
-- **📱 Responsive UI**: Modern Blazor Server-Side Rendering with Bootstrap 5
-- **🔄 Real-time Updates**: SignalR integration for live processing status updates
-- **📈 Analytics & Charts**: Visual insights with Chart.js integration
+- **🤖 AI-Powered Processing**: Integration with AWS Bedrock (Claude 3.5 Sonnet) for intelligent document summarization
+- **📁 Multi-Format Support**: Process PDF documents with text extraction
+- **📤 Easy Upload**: Drag-and-drop interface for document uploads
+- **☁️ Flexible Storage**: Support for both AWS S3 and local file storage
+- **🔐 Secure Credentials**: AWS Secrets Manager integration for database connection strings
+- **💾 Database Support**: Works with both SQL Server and PostgreSQL
+- **📊 Document Management**: Track upload status, view summaries, and manage documents
+- **🔄 Status Tracking**: Real-time processing status (Pending, Processing, Processed, Failed)
 
 ## 🏗️ Architecture
 
-The application follows Clean Architecture principles with clear separation of concerns:
+Simple single-project Blazor Server architecture:
 
 ```
-DocumentProcessor/
-├── src/
-│   ├── DocumentProcessor.Core/          # Domain entities and interfaces
-│   ├── DocumentProcessor.Infrastructure/ # Data access, AI services, external integrations
-│   ├── DocumentProcessor.Application/   # Business logic and services
-│   └── DocumentProcessor.Web/          # Blazor UI and API endpoints
-└── tests/
-    └── DocumentProcessor.Tests/        # Unit and integration tests
+DPS/
+└── src/
+    └── DocumentProcessor.Web/
+        ├── Components/        # Blazor components and pages
+        ├── Data/             # DbContext and database configuration
+        ├── Models/           # Document entity and enums
+        ├── Services/         # Business logic (AI, Storage, Processing)
+        └── wwwroot/          # Static files (CSS, images)
 ```
 
 ## 🚀 Getting Started
@@ -36,292 +35,259 @@ DocumentProcessor/
 ### Prerequisites
 
 - .NET 8.0 SDK or later
-- SQL Server (LocalDB or full instance)
-- AWS Account with Bedrock access (for AI features)
-- Visual Studio 2022 or VS Code
+- SQL Server or PostgreSQL database
+- AWS Account with:
+  - Bedrock access (Claude 3.5 Sonnet model)
+  - S3 bucket (optional, for cloud storage)
+  - Secrets Manager (for database credentials)
+- AWS CLI configured with appropriate credentials
 
 ### Installation
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/yourusername/document-processor.git
-   cd document-processor
+   git clone https://github.com/aws-samples/sample-document-processing-system.git
+   cd .\sample-document-processing-system\  
    ```
 
 2. **Configure AWS Credentials**
-   
-   Set up your AWS credentials using one of these methods:
-   - AWS CLI: `aws configure`
-   - Environment variables: `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`
-   - IAM roles (for EC2 deployment)
 
-3. **Configure Application Settings**
-   
-   Update `src/DocumentProcessor.Web/appsettings.json`:
+   Ensure your AWS credentials are configured:
+   ```bash
+   aws configure
+   ```
+
+   Or set environment variables:
+   ```bash
+   export AWS_ACCESS_KEY_ID=your_access_key
+   export AWS_SECRET_ACCESS_KEY=your_secret_key
+   export AWS_DEFAULT_REGION=us-east-1
+   ```
+
+3. **Set Up Database Credentials in AWS Secrets Manager**
+
+   The application retrieves database credentials from AWS Secrets Manager. Create secrets with the following structure:
+
+   **For PostgreSQL** (secret name: `atx-db-modernization-atx-db-modernization-1-target`):
+   ```json
+   {
+     "username": "your_username",
+     "password": "your_password",
+     "host": "your-db-host.rds.amazonaws.com",
+     "port": "5432"
+   }
+   ```
+
+   **For SQL Server** (secret with description: `Password for RDS MSSQL used for MAM319.`):
+   ```json
+   {
+     "username": "your_username",
+     "password": "your_password",
+     "host": "your-db-host.rds.amazonaws.com",
+     "port": "1433",
+     "dbname": "your_database_name"
+   }
+   ```
+
+4. **Configure Application Settings** (Optional)
+
+   Update `src/DocumentProcessor.Web/appsettings.json` for local development fallback:
    ```json
    {
      "ConnectionStrings": {
-       "DefaultConnection": "Server=(localdb)\\mssqllocaldb;Database=DocumentProcessorDB;Trusted_Connection=True;"
+       "DefaultConnection": "Server=localhost;Database=DocumentProcessor;Integrated Security=true;TrustServerCertificate=True;"
      },
-     "BedrockOptions": {
-       "Region": "us-west-2",
-       "ClassificationModelId": "anthropic.claude-3-haiku-20240307-v1:0",
-       "ExtractionModelId": "anthropic.claude-3-sonnet-20240229-v1:0",
-       "MaxTokens": 2000,
-       "Temperature": 0.3
+     "Logging": {
+       "LogLevel": {
+         "Default": "Information",
+         "Microsoft.AspNetCore": "Warning"
+       }
      }
    }
    ```
 
-4. **Set up the database**
-   ```bash
-   dotnet ef database update -p src/DocumentProcessor.Infrastructure -s src/DocumentProcessor.Web
-   ```
-
 5. **Run the application**
    ```bash
-   dotnet run --project src/DocumentProcessor.Web
+   cd src/DocumentProcessor.Web
+   dotnet run
    ```
 
 6. **Access the application**
-   
-   Navigate to `https://localhost:7266` or `http://localhost:5197`
+
+   Navigate to `http://localhost:5197`
 
 ## 📋 Features Overview
 
-### Document Management
-- **Multi-format Support**: PDF, DOCX, TXT, RTF, ODT, JPG, PNG, XLSX
-- **Drag-and-drop Upload**: Intuitive file upload interface
-- **Batch Processing**: Queue multiple documents for processing
-- **Document Viewer**: Preview documents directly in the browser
-- **Search & Filter**: Find documents by metadata, type, or content
+### Document Upload & Processing
 
-![Document Upload Interface](screenshots/Screenshot%202025-08-13%20113424.png)
+![Document Upload](screenshots/upload.png)
 
-### AI Processing Capabilities
-- **Intelligent Classification**: Automatically categorize documents into predefined types
-- **Content Extraction**: Extract text from various document formats including PDFs
-- **Metadata Generation**: Create structured metadata from unstructured content
-- **Multi-model Support**: Configurable AI models for different tasks:
-  - Classification: Claude 3 Haiku for fast categorization
-  - Extraction: Claude 3 Sonnet for detailed content analysis
-  - Summarization: Claude 3 Haiku for quick summaries
+- **Drag-and-drop Interface**: Easy file upload with visual feedback
+- **PDF Text Extraction**: Automatic text extraction using PdfPig
+- **AI Summarization**: Generate intelligent summaries using AWS Bedrock
+- **Document Classification**: Categorize documents automatically
+- **Status Tracking**: Monitor document processing status in real-time
 
-### Real-time Dashboard
-- **Processing Statistics**: Total documents, processed, queued, and failed counts
-- **Activity Charts**: 7-day processing activity visualization
-- **Document Type Distribution**: Doughnut chart showing document categories
-- **Queue Monitoring**: Real-time processing queue status
-- **System Health**: Monitor database, storage, and AI processor status
-- **Storage Usage**: Track storage consumption with visual indicators
+### Storage Options
 
-![Document List View](screenshots/Screenshot%202025-08-13%20113444.png)
+The application supports two storage backends:
 
-### Background Processing
-- **Async Queue Processing**: Non-blocking document processing
-- **Priority Management**: Process documents based on priority levels
-- **Retry Logic**: Automatic retry with exponential backoff
-- **Status Tracking**: Real-time status updates via SignalR
-- **Auto-refresh**: Dashboard updates every 10 seconds
+1. **Local File System**: Documents stored in `uploads/` directory
+2. **AWS S3**: Cloud storage with automatic bucket management
 
-![Document Search Interface](screenshots/Screenshot%202025-08-13%20113453.png)
+Storage is configured automatically based on AWS credentials availability.
 
-![Document Metadata View](screenshots/Screenshot%202025-08-13%20113508.png)
+### Database Flexibility
+
+- **SQL Server**: Primary database support with Entity Framework Core
+- **PostgreSQL**: Alternative database option for cloud deployments
+- **Automatic Migration**: Database schema created automatically on first run
 
 ## 🛠️ Technology Stack
 
-- **Backend**: 
+- **Backend**:
   - .NET 8 with C# 12
+  - ASP.NET Core Blazor Server
   - Entity Framework Core 8
-  - ASP.NET Core Identity
-- **Frontend**: 
+
+- **Frontend**:
   - Blazor Server-Side Rendering
-  - Bootstrap 5
-  - Chart.js
-- **Database**: 
-  - SQL Server 
-  - Temporal tables for audit trails
-- **AI/ML**: 
-  - AWS Bedrock
-  - Claude 3 Haiku & Sonnet models
-- **Real-time**: 
-  - SignalR for live updates
-- **Document Processing**: 
-  - PdfPig for PDF extraction
-  - DocumentFormat.OpenXml for Office documents
-- **Background Jobs**: 
-  - IHostedService
-  - Custom Background Task Queue
+  - Bootstrap 5 for responsive UI
+  - Custom CSS for styling
+
+- **Database**:
+  - Microsoft SQL Server (EntityFrameworkCore.SqlServer 8.0.10)
+  - PostgreSQL support (via configuration)
+
+- **Cloud Services**:
+  - AWS Bedrock (Claude 3.5 Sonnet for AI processing)
+  - AWS S3 (Document storage)
+  - AWS Secrets Manager (Credential management)
+
+- **Document Processing**:
+  - PdfPig 0.1.11 (PDF text extraction)
+  - CsvHelper 33.1.0 (CSV processing)
 
 ## 📁 Project Structure
 
 ```
-src/
-├── DocumentProcessor.Core/             # Domain layer
-│   ├── Entities/                      # Domain models
-│   │   ├── Document.cs               # Main document entity
-│   │   ├── Classification.cs         # Classification results
-│   │   ├── DocumentMetadata.cs       # Extracted metadata
-│   │   └── ProcessingQueue.cs        # Queue management
-│   └── Interfaces/                    # Core contracts
-│       ├── IDocumentProcessor.cs      
-│       ├── IAIProcessor.cs           
-│       └── IDocumentRepository.cs    
-│
-├── DocumentProcessor.Infrastructure/   # Infrastructure layer
-│   ├── AI/                            # AI processing services
-│   │   ├── BedrockAIProcessor.cs     # AWS Bedrock integration
-│   │   └── DocumentContentExtractor.cs # Content extraction
-│   ├── Data/                          # EF Core context
-│   │   └── ApplicationDbContext.cs   
-│   ├── Repositories/                  # Data access
-│   └── BackgroundTasks/               # Queue processing
-│
-├── DocumentProcessor.Application/      # Application layer
-│   └── Services/                      # Business logic
-│       ├── DocumentProcessingService.cs
-│       └── BackgroundDocumentProcessingService.cs
-│
-└── DocumentProcessor.Web/             # Presentation layer
-    ├── Components/                    # Blazor components
-    │   ├── Pages/                    # Page components
-    │   │   ├── Dashboard.razor       # Main dashboard
-    │   │   ├── DocumentUpload.razor  # Upload interface
-    │   │   └── DocumentList.razor    # Document management
-    │   └── Layout/                   # Layout components
-    ├── Hubs/                         # SignalR hubs
-    └── wwwroot/                      # Static assets
+src/DocumentProcessor.Web/
+├── Components/
+│   ├── Layout/
+│   │   ├── MainLayout.razor       # Main app layout
+│   │   └── NavMenu.razor          # Navigation menu
+│   └── Pages/
+│       └── Home.razor             # Main page with upload and document list
+├── Data/
+│   └── AppDbContext.cs            # Entity Framework DbContext
+├── Models/
+│   └── Document.cs                # Document entity with status enum
+├── Services/
+│   ├── AIService.cs               # AWS Bedrock integration
+│   ├── DatabaseInfoService.cs    # Database metadata
+│   ├── DocumentProcessingService.cs  # Document processing logic
+│   ├── FileStorageService.cs     # S3/local file storage
+│   └── SecretsService.cs         # AWS Secrets Manager
+├── wwwroot/
+│   └── css/
+│       └── app.css                # Custom styles
+└── Program.cs                     # App configuration and startup
 ```
 
 ## 🔧 Configuration
 
-### Document Storage Options
+### AWS Bedrock Model
 
-Configure storage in `appsettings.json`:
+The application uses Claude 3.5 Sonnet v2 by default:
+- Model ID: `anthropic.claude-3-5-sonnet-20241022-v2:0`
+- Region: Configured via AWS CLI or environment variables
+- Max Tokens: 1024 for summaries
 
-```json
-{
-  "DocumentStorage": {
-    "Provider": "LocalFileSystem",
-    "LocalFileSystem": {
-      "RootPath": "uploads",
-      "MaxFileSizeInMB": 100,
-      "AllowedExtensions": [".pdf", ".doc", ".docx", ".txt", ".rtf", ".odt"]
-    },
-    "S3": {
-      "BucketName": "document-processor-bucket",
-      "Region": "us-east-1",
-      "UsePresignedUrls": true
-    },
-    "FileShare": {
-      "NetworkPath": "\\\\fileserver\\documents",
-      "MaxFileSizeInMB": 100
-    }
-  }
-}
+### File Storage
+
+**Local Storage** (default fallback):
+```
+DocumentProcessor.Web/uploads/
 ```
 
-### AI Configuration
+**AWS S3 Storage**:
+- Bucket: `document-processor-uploads-{accountId}`
+- Auto-created if it doesn't exist
+- Files organized by document ID
 
-```json
-{
-  "BedrockOptions": {
-    "Region": "us-west-2",
-    "ClassificationModelId": "anthropic.claude-3-haiku-20240307-v1:0",
-    "ExtractionModelId": "anthropic.claude-3-sonnet-20240229-v1:0",
-    "SummarizationModelId": "anthropic.claude-3-haiku-20240307-v1:0",
-    "MaxTokens": 2000,
-    "Temperature": 0.3,
-    "TopP": 0.9,
-    "MaxRetries": 3,
-    "RetryDelayMilliseconds": 1000,
-    "EnableDetailedLogging": true,
-    "UseSimulatedResponses": false
-  }
-}
-```
+### Database Connection
 
-## 🧪 Testing
-
-Run the test suite:
-```bash
-# Run all tests
-dotnet test
-
-# Run with coverage
-dotnet test /p:CollectCoverage=true /p:CoverletOutputFormat=opencover
-
-# Run specific test project
-dotnet test tests/DocumentProcessor.Tests
-```
-
-## 📈 Performance Features
-
-- **Virtualization**: Efficient rendering of large document lists
-- **Lazy Loading**: Load data on demand
-- **Caching**: In-memory caching for frequently accessed data
-- **Connection Pooling**: Optimized database connections
-- **Async/Await**: Non-blocking I/O operations throughout
-- **Batch Processing**: Process multiple documents efficiently
-- **Optimized Queries**: EF Core query optimization
+The app attempts to connect in this order:
+1. AWS Secrets Manager (PostgreSQL target secret)
+2. AWS Secrets Manager (SQL Server with "MAM319" description)
+3. Local connection string from appsettings.json
 
 ## 🔒 Security Features
 
-- **Authentication**: ASP.NET Core Identity integration
-- **Role-based Access**: Configurable user roles and permissions
-- **Input Validation**: Comprehensive validation on all inputs
-- **File Type Validation**: Whitelist-based file extension filtering
-- **Secure File Storage**: Files stored outside web root
+- **AWS Secrets Manager**: Database credentials never stored in code
+- **Secure File Storage**: Documents stored with unique GUIDs
+- **Input Validation**: File type and size validation
 - **SQL Injection Prevention**: Parameterized queries via EF Core
 - **XSS Protection**: Built-in Blazor security features
-- **CSRF Protection**: Anti-forgery tokens
+- **Soft Deletes**: Documents marked as deleted, not physically removed
+
+## 📊 Document Status States
+
+Documents progress through the following states:
+
+1. **Pending**: Uploaded, waiting for processing
+2. **Processing**: Currently being analyzed by AI
+3. **Processed**: Successfully processed with summary available
+4. **Failed**: Processing encountered an error
 
 ## 🚢 Deployment
 
-### Docker
-
-```dockerfile
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
-WORKDIR /app
-EXPOSE 80
-EXPOSE 443
-
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
-WORKDIR /src
-COPY ["src/DocumentProcessor.Web/DocumentProcessor.Web.csproj", "DocumentProcessor.Web/"]
-RUN dotnet restore "DocumentProcessor.Web/DocumentProcessor.Web.csproj"
-COPY . .
-WORKDIR "/src/DocumentProcessor.Web"
-RUN dotnet build "DocumentProcessor.Web.csproj" -c Release -o /app/build
-
-FROM build AS publish
-RUN dotnet publish "DocumentProcessor.Web.csproj" -c Release -o /app/publish
-
-FROM base AS final
-WORKDIR /app
-COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "DocumentProcessor.Web.dll"]
-```
-
 ### AWS Deployment
 
-Deploy to AWS using Elastic Beanstalk or ECS:
+The application is designed for AWS deployment:
 
-```bash
-# Using AWS CLI for Elastic Beanstalk
-eb init -p docker document-processor
-eb create production
-eb deploy
-```
+1. **Database**: RDS (SQL Server or PostgreSQL)
+2. **Storage**: S3 for document files
+3. **Compute**: Elastic Beanstalk, ECS, or EC2
+4. **Credentials**: Secrets Manager for sensitive data
 
-## 📊 Monitoring
+### Docker (Future)
 
-The application includes built-in monitoring capabilities:
+Docker support can be added with a standard .NET 8 Dockerfile.
 
-- **Health Checks**: `/health` endpoint for monitoring
-- **Logging**: Structured logging with configurable levels
-- **Metrics**: Processing statistics and system metrics
-- **Dashboard**: Real-time monitoring via the web interface
+## 🆘 Troubleshooting
+
+### Database Connection Issues
+
+If you see database connection errors:
+1. Verify AWS Secrets Manager secrets are configured correctly
+2. Check AWS credentials have permissions to access Secrets Manager
+3. Fallback to local connection string in appsettings.json
+
+### AWS Bedrock Access
+
+If AI processing fails:
+1. Verify AWS region supports Bedrock
+2. Check IAM permissions include Bedrock access
+3. Ensure Claude model access is enabled in AWS console
+
+### File Upload Issues
+
+If uploads fail:
+1. Check file size and format (PDF supported)
+2. Verify local uploads directory exists and is writable
+3. For S3: confirm S3 bucket permissions and AWS credentials
+
+## 🗺️ Roadmap
+
+### Planned Features
+- Support for additional document formats (DOCX, TXT, images)
+- Batch document processing
+- Document search and filtering
+- Export capabilities
+- User authentication
+- Document versioning
+- Advanced AI analysis options
 
 ## 🤝 Contributing
 
@@ -333,84 +299,17 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 4. Push to the branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
 
-### Development Guidelines
-
-- Follow C# coding conventions
-- Write unit tests for new features
-- Update documentation as needed
-- Ensure all tests pass before submitting PR
-- Add meaningful commit messages
-
 ## 📝 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🆘 Support
-
-For issues, questions, or suggestions:
-- Open an issue on GitHub
-- Check existing issues before creating new ones
-- Provide detailed information for bug reports
-
-## 🗺️ Roadmap
-
-### Short-term (Q1 2025)
-- [ ] Add support for additional AI providers (OpenAI, Azure OpenAI)
-- [ ] Implement OCR for scanned documents
-- [ ] Add batch export functionality
-- [ ] Enhanced search with full-text search
-
-### Medium-term (Q2-Q3 2025)
-- [ ] Document versioning and change tracking
-- [ ] Multi-tenant support
-- [ ] REST API for external integrations
-- [ ] Mobile-responsive design improvements
-
-### Long-term (Q4 2025 and beyond)
-- [ ] Workflow automation features
-- [ ] Machine learning model training on classified documents
-- [ ] Advanced analytics and reporting
-- [ ] Plugin architecture for custom processors
-
-## 📸 Screenshots
-
-### Dashboard Overview
-![Dashboard showing real-time processing statistics and system health](screenshots/Screenshot%202025-08-13%20113417.png)
-*Real-time dashboard with processing statistics, activity charts, and system health monitoring*
-
-### Document Upload
-![Document upload interface with drag-and-drop support](screenshots/Screenshot%202025-08-13%20113424.png)
-*Intuitive drag-and-drop interface for uploading documents with progress tracking*
-
-### Document Management
-![Document list view with filtering and actions](screenshots/Screenshot%202025-08-13%20113444.png)
-*Comprehensive document list with status indicators and quick actions*
-
-### Search Functionality
-![Advanced document search interface](screenshots/Screenshot%202025-08-13%20113453.png)
-*Powerful search capabilities to find documents by various criteria*
-
-### Metadata Extraction
-![AI-powered metadata extraction results](screenshots/Screenshot%202025-08-13%20113508.png)
-*View and edit extracted metadata from processed documents*
-
-## 📚 Documentation
-
-Additional documentation can be found in the `/docs` directory:
-- [API Documentation](docs/api.md)
-- [Architecture Guide](docs/architecture.md)
-- [Deployment Guide](docs/deployment.md)
-- [Development Setup](docs/development.md)
+This project is licensed under the MIT License.
 
 ## 🙏 Acknowledgments
 
 - Built with [.NET 8](https://dotnet.microsoft.com/)
 - AI powered by [AWS Bedrock](https://aws.amazon.com/bedrock/)
-- UI components from [Bootstrap](https://getbootstrap.com/)
-- Charts by [Chart.js](https://www.chartjs.org/)
+- UI framework by [Bootstrap](https://getbootstrap.com/)
+- PDF processing by [PdfPig](https://github.com/UglyToad/PdfPig)
 
 ---
 
 **Built with ❤️ using .NET 8 and AWS Bedrock AI**
-
-For more information, visit our [documentation](https://github.com/yourusername/document-processor/wiki) or contact the maintainers.
